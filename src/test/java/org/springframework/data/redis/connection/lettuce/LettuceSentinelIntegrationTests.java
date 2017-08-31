@@ -78,7 +78,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		lettuceConnectionFactory.afterPropertiesSet();
 
 		LettuceConnectionFactory pooledConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG,
-				LettucePoolingClientConfiguration.builder().build());
+				LettuceClientConfiguration.builder().withConnectionPooling().build());
 		pooledConnectionFactory.setShareNativeConnection(false);
 		pooledConnectionFactory.afterPropertiesSet();
 

@@ -26,7 +26,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link LettucePoolingClientConfiguration}.
+ * Unit tests for {@link LettuceClientConfiguration.LettucePoolingClientConfiguration}.
  *
  * @author Mark Paluch
  */
@@ -35,7 +35,8 @@ public class LettucePoolingClientConfigurationUnitTests {
 	@Test // DATAREDIS-667
 	public void shouldCreateEmptyConfiguration() {
 
-		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.defaultConfiguration();
+		LettuceClientConfiguration.LettucePoolingClientConfiguration configuration = LettuceClientConfiguration.builder()
+				.withConnectionPooling().build();
 
 		assertThat(configuration.isUsePooling()).isTrue();
 		assertThat(configuration.getPoolConfig()).isNotNull();
@@ -55,12 +56,11 @@ public class LettucePoolingClientConfigurationUnitTests {
 		ClientResources sharedClientResources = LettuceTestClientResources.getSharedClientResources();
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
-		LettucePoolingClientConfiguration configuration = (LettucePoolingClientConfiguration) LettucePoolingClientConfiguration
-				.builder() //
-				.poolConfig(poolConfig).and() //
+		LettuceClientConfiguration.LettucePoolingClientConfiguration configuration = LettuceClientConfiguration.builder() //
 				.useSsl() //
 				.disablePeerVerification() //
 				.startTls().and() //
+				.withConnectionPooling(poolConfig) //
 				.clientOptions(clientOptions) //
 				.clientResources(sharedClientResources) //
 				.commandTimeout(Duration.ofMinutes(5)) //

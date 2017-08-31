@@ -19,8 +19,10 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
+import java.util.Optional;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.springframework.data.redis.connection.lettuce.DefaultLettuceClientConfiguration.DefaultLettuceClientConfigurationBuilder;
 
 /**
  * Default implementation of {@literal LettucePoolingClientConfiguration}.
@@ -28,17 +30,20 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
  * @author Mark Paluch
  * @since 2.0
  */
-class DefaultLettucePoolingClientConfiguration extends DefaultLettuceClientConfiguration
-		implements LettucePoolingClientConfiguration {
+class DefaultLettucePoolingClientConfiguration implements LettuceClientConfiguration.LettucePoolingClientConfiguration {
 
+	@Override
+	public boolean isUseSsl() {
+		return clientConfiguration.isUseSsl();
+	}
+
+	private final LettuceClientConfiguration clientConfiguration;
 	private final GenericObjectPoolConfig poolConfig;
 
-	DefaultLettucePoolingClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
-			ClientResources clientResources, ClientOptions clientOptions, Duration timeout, Duration shutdownTimeout,
+	DefaultLettucePoolingClientConfiguration(LettuceClientConfiguration clientConfiguration,
 			GenericObjectPoolConfig poolConfig) {
 
-		super(useSsl, verifyPeer, startTls, clientResources, clientOptions, timeout, shutdownTimeout);
-
+		this.clientConfiguration = clientConfiguration;
 		this.poolConfig = poolConfig;
 	}
 
@@ -50,12 +55,119 @@ class DefaultLettucePoolingClientConfiguration extends DefaultLettuceClientConfi
 		return true;
 	}
 
+	@Override
+	public boolean isVerifyPeer() {
+		return clientConfiguration.isVerifyPeer();
+	}
+
+	@Override
+	public boolean isStartTls() {
+		return clientConfiguration.isStartTls();
+	}
+
+	@Override
+	public Optional<ClientResources> getClientResources() {
+		return clientConfiguration.getClientResources();
+	}
+
+	@Override
+	public Optional<ClientOptions> getClientOptions() {
+		return clientConfiguration.getClientOptions();
+	}
+
+	@Override
+	public Duration getCommandTimeout() {
+		return clientConfiguration.getCommandTimeout();
+	}
+
+	@Override
+	public Duration getShutdownTimeout() {
+		return clientConfiguration.getShutdownTimeout();
+	}
+
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration#getPoolConfig()
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettucePoolingClientConfiguration#getPoolConfig()
 	 */
 	@Override
 	public GenericObjectPoolConfig getPoolConfig() {
 		return poolConfig;
+	}
+
+	static class DefaultLettucePoolingClientConfigurationBuilder
+			implements LettucePoolingClientConfigurationBuilder, LettuceSslClientConfigurationBuilder {
+
+		final DefaultLettuceClientConfigurationBuilder delegate;
+		GenericObjectPoolConfig poolConfig;
+
+		public DefaultLettucePoolingClientConfigurationBuilder(DefaultLettuceClientConfigurationBuilder delegate) {
+			this.delegate = delegate;
+		}
+
+		public LettuceSslClientConfigurationBuilder useSsl() {
+
+			delegate.useSsl();
+			return this;
+		}
+
+		public LettucePoolingClientConfigurationBuilder clientResources(ClientResources clientResources) {
+
+			delegate.clientResources(clientResources);
+			return this;
+		}
+
+		public LettucePoolingClientConfigurationBuilder clientOptions(ClientOptions clientOptions) {
+
+			delegate.clientOptions(clientOptions);
+			return this;
+		}
+
+		public LettucePoolingClientConfigurationBuilder commandTimeout(Duration timeout) {
+
+			delegate.commandTimeout(timeout);
+			return this;
+		}
+
+		public LettucePoolingClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout) {
+			delegate.shutdownTimeout(shutdownTimeout);
+			return this;
+		}
+
+		@Override
+		public DefaultLettucePoolingClientConfigurationBuilder withConnectionPooling(GenericObjectPoolConfig poolConfig) {
+
+			this.poolConfig = poolConfig;
+			return this;
+		}
+
+		@Override
+		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
+
+			delegate.disablePeerVerification();
+			return this;
+		}
+
+		@Override
+		public LettuceSslClientConfigurationBuilder startTls() {
+
+			delegate.startTls();
+			return this;
+		}
+
+		@Override
+		public LettuceClientConfigurationBuilder and() {
+
+			delegate.and();
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#build()
+		 */
+		@Override
+		public LettucePoolingClientConfiguration build() {
+			return new DefaultLettucePoolingClientConfiguration(delegate.build(), poolConfig);
+		}
 	}
 }

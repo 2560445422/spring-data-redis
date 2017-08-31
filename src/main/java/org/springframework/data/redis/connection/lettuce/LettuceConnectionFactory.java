@@ -153,7 +153,7 @@ public class LettuceConnectionFactory
 
 	/**
 	 * @param pool
-	 * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
+	 * @deprecated since 2.0, use pooling via {@link LettuceClientConfiguration.LettucePoolingClientConfiguration}.
 	 */
 	@Deprecated
 	public LettuceConnectionFactory(LettucePool pool) {

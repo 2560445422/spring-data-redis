@@ -26,7 +26,7 @@ import org.springframework.data.redis.connection.Pool;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
- * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
+ * @deprecated since 2.0, use pooling via {@link LettuceClientConfiguration.LettucePoolingClientConfiguration}.
  */
 @Deprecated
 public interface LettucePool extends Pool<StatefulConnection<byte[], byte[]>> {

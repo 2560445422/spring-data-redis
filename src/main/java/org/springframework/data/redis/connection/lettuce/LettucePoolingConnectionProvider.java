@@ -54,7 +54,7 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Dis
 			LettuceClientConfiguration clientConfiguration) {
 
 		this.connectionProvider = connectionProvider;
-		this.poolConfig = ((LettucePoolingClientConfiguration) clientConfiguration).getPoolConfig();
+		this.poolConfig = ((LettuceClientConfiguration.LettucePoolingClientConfiguration) clientConfiguration).getPoolConfig();
 	}
 
 	/*

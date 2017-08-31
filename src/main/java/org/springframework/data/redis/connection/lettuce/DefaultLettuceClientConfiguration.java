@@ -16,10 +16,15 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
 import java.util.Optional;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.springframework.data.redis.connection.lettuce.DefaultLettucePoolingClientConfiguration.DefaultLettucePoolingClientConfigurationBuilder;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@literal LettuceClientConfiguration}.
@@ -111,5 +116,132 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	@Override
 	public Duration getShutdownTimeout() {
 		return shutdownTimeout;
+	}
+
+	/**
+	 * Default {@link LettuceClientConfigurationBuilder} implementation to build an immutable
+	 * {@link LettuceClientConfiguration}.
+	 */
+	static class DefaultLettuceClientConfigurationBuilder
+			implements LettuceClientConfigurationBuilder, LettuceSslClientConfigurationBuilder {
+
+		boolean useSsl;
+		boolean verifyPeer = true;
+		boolean startTls;
+		ClientResources clientResources;
+		ClientOptions clientOptions;
+		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
+		Duration shutdownTimeout = Duration.ofMillis(100);
+
+		DefaultLettuceClientConfigurationBuilder() {}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#useSsl()
+		 */
+		@Override
+		public LettuceSslClientConfigurationBuilder useSsl() {
+
+			this.useSsl = true;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#disablePeerVerification()
+		 */
+		@Override
+		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
+
+			this.verifyPeer = false;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#startTls()
+		 */
+		@Override
+		public LettuceSslClientConfigurationBuilder startTls() {
+
+			this.startTls = true;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#and()
+		 */
+		@Override
+		public LettuceClientConfigurationBuilder and() {
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientResources(io.lettuce.core.resource.ClientResources)
+		 */
+		@Override
+		public LettuceClientConfigurationBuilder clientResources(ClientResources clientResources) {
+
+			Assert.notNull(clientResources, "ClientResources must not be null!");
+
+			this.clientResources = clientResources;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientOptions(io.lettuce.core.ClientOptions)
+		 */
+		@Override
+		public LettuceClientConfigurationBuilder clientOptions(ClientOptions clientOptions) {
+
+			Assert.notNull(clientOptions, "ClientOptions must not be null!");
+
+			this.clientOptions = clientOptions;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#timeout(java.time.Duration)
+		 */
+		@Override
+		public LettuceClientConfigurationBuilder commandTimeout(Duration timeout) {
+
+			Assert.notNull(timeout, "Duration must not be null!");
+
+			this.timeout = timeout;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#shutdownTimeout(java.time.Duration)
+		 */
+		@Override
+		public LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout) {
+
+			Assert.notNull(timeout, "Duration must not be null!");
+
+			this.shutdownTimeout = shutdownTimeout;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#build()
+		 */
+		@Override
+		public LettuceClientConfiguration build() {
+			return new DefaultLettuceClientConfiguration(useSsl, verifyPeer, startTls, clientResources, clientOptions,
+					timeout, shutdownTimeout);
+		}
+
+		@Override
+		public LettucePoolingClientConfigurationBuilder withConnectionPooling(GenericObjectPoolConfig poolConfig) {
+			return new DefaultLettucePoolingClientConfigurationBuilder(this).withConnectionPooling(poolConfig);
+		}
 	}
 }

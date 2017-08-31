@@ -16,14 +16,14 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
-import io.lettuce.core.RedisURI;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.util.Assert;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.springframework.data.redis.connection.lettuce.DefaultLettuceClientConfiguration.DefaultLettuceClientConfigurationBuilder;
 
 /**
  * Redis client configuration for lettuce. This configuration provides optional configuration elements such as
@@ -126,6 +126,21 @@ public interface LettuceClientConfiguration {
 	}
 
 	/**
+	 * @author Christoph Strobl
+	 */
+	interface LettucePoolingClientConfiguration extends LettuceClientConfiguration {
+
+		/**
+		 * @return the optional {@link GenericObjectPoolConfig}.
+		 */
+		GenericObjectPoolConfig getPoolConfig();
+
+		static LettuceClientConfiguration defaultPoolingConfiguration() {
+			return builder().withConnectionPooling().build();
+		}
+	}
+
+	/**
 	 * Builder for {@link LettuceClientConfiguration}.
 	 */
 	interface LettuceClientConfigurationBuilder {
@@ -173,12 +188,37 @@ public interface LettuceClientConfiguration {
 		 */
 		LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout);
 
+		default LettucePoolingClientConfigurationBuilder withConnectionPooling() {
+			return withConnectionPooling(new GenericObjectPoolConfig());
+		}
+
+		LettucePoolingClientConfigurationBuilder withConnectionPooling(GenericObjectPoolConfig poolConfig);
+
 		/**
 		 * Build the {@link LettuceClientConfiguration} with the configuration applied from this builder.
 		 *
 		 * @return a new {@link LettuceClientConfiguration} object.
 		 */
 		LettuceClientConfiguration build();
+
+	}
+
+	interface LettucePoolingClientConfigurationBuilder extends LettuceClientConfigurationBuilder {
+
+		@Override
+		LettucePoolingClientConfiguration build();
+
+		@Override
+		LettucePoolingClientConfigurationBuilder clientResources(ClientResources clientResources);
+
+		@Override
+		LettucePoolingClientConfigurationBuilder clientOptions(ClientOptions clientOptions);
+
+		@Override
+		LettucePoolingClientConfigurationBuilder commandTimeout(Duration timeout);
+
+		@Override
+		LettucePoolingClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout);
 	}
 
 	/**
@@ -215,125 +255,4 @@ public interface LettuceClientConfiguration {
 		LettuceClientConfiguration build();
 	}
 
-	/**
-	 * Default {@link LettuceClientConfigurationBuilder} implementation to build an immutable
-	 * {@link LettuceClientConfiguration}.
-	 */
-	class DefaultLettuceClientConfigurationBuilder
-			implements LettuceClientConfigurationBuilder, LettuceSslClientConfigurationBuilder {
-
-		boolean useSsl;
-		boolean verifyPeer = true;
-		boolean startTls;
-		ClientResources clientResources;
-		ClientOptions clientOptions;
-		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
-		Duration shutdownTimeout = Duration.ofMillis(100);
-
-		DefaultLettuceClientConfigurationBuilder() {}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#useSsl()
-		 */
-		@Override
-		public LettuceSslClientConfigurationBuilder useSsl() {
-
-			this.useSsl = true;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#disablePeerVerification()
-		 */
-		@Override
-		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
-
-			this.verifyPeer = false;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#startTls()
-		 */
-		@Override
-		public LettuceSslClientConfigurationBuilder startTls() {
-
-			this.startTls = true;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#and()
-		 */
-		@Override
-		public LettuceClientConfigurationBuilder and() {
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientResources(io.lettuce.core.resource.ClientResources)
-		 */
-		@Override
-		public LettuceClientConfigurationBuilder clientResources(ClientResources clientResources) {
-
-			Assert.notNull(clientResources, "ClientResources must not be null!");
-
-			this.clientResources = clientResources;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientOptions(io.lettuce.core.ClientOptions)
-		 */
-		@Override
-		public LettuceClientConfigurationBuilder clientOptions(ClientOptions clientOptions) {
-
-			Assert.notNull(clientOptions, "ClientOptions must not be null!");
-
-			this.clientOptions = clientOptions;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#timeout(java.time.Duration)
-		 */
-		@Override
-		public LettuceClientConfigurationBuilder commandTimeout(Duration timeout) {
-
-			Assert.notNull(timeout, "Duration must not be null!");
-
-			this.timeout = timeout;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#shutdownTimeout(java.time.Duration)
-		 */
-		@Override
-		public LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout) {
-
-			Assert.notNull(timeout, "Duration must not be null!");
-
-			this.shutdownTimeout = shutdownTimeout;
-			return this;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#build()
-		 */
-		@Override
-		public LettuceClientConfiguration build() {
-			return new DefaultLettuceClientConfiguration(useSsl, verifyPeer, startTls, clientResources, clientOptions,
-					timeout, shutdownTimeout);
-		}
-	}
 }

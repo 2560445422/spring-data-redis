@@ -39,7 +39,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -66,8 +66,9 @@ abstract public class ReactiveOperationsTestParams {
 				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
 				.build();
 
-		LettuceClientConfiguration poolingConfiguration = LettucePoolingClientConfiguration.builder() //
-				.and().shutdownTimeout(Duration.ZERO) //
+		LettucePoolingClientConfiguration poolingConfiguration = LettuceClientConfiguration
+				.builder() //
+				.withConnectionPooling().shutdownTimeout(Duration.ZERO) //
 				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
 				.build();
 

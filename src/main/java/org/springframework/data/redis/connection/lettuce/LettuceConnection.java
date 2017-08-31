@@ -223,7 +223,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param timeout The connection timeout (in milliseconds) * @param client The {@link RedisClient} to use when
 	 *          instantiating a pub/sub connection
 	 * @param pool The connection pool to use for all other native connections
-	 * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
+	 * @deprecated since 2.0, use pooling via {@link LettuceClientConfiguration.LettucePoolingClientConfiguration}.
 	 */
 	@Deprecated
 	public LettuceConnection(long timeout, RedisClient client, LettucePool pool) {

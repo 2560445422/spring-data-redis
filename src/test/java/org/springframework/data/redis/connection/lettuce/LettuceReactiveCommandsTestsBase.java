@@ -95,7 +95,7 @@ public abstract class LettuceReactiveCommandsTestsBase {
 
 		parameters.add(new Object[] { standaloneProvider, nativeConnectionProvider, "Standalone" });
 		parameters.add(new Object[] {
-				new LettucePoolingConnectionProvider(standaloneProvider, LettucePoolingClientConfiguration.builder().build()),
+				new LettucePoolingConnectionProvider(standaloneProvider, LettuceClientConfiguration.builder().withConnectionPooling().build()),
 				nativeConnectionProvider, "Standalone/Pooled" });
 
 		if (cluster.test()) {

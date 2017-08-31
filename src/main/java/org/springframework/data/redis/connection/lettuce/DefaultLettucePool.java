@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
- * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
+ * @deprecated since 2.0, use pooling via {@link LettuceClientConfiguration.LettucePoolingClientConfiguration}.
  */
 @Deprecated
 public class DefaultLettucePool implements LettucePool, InitializingBean {
